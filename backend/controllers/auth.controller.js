@@ -1,7 +1,9 @@
-import { User } from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+
+import { User } from '../models/User.js';
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie.js';
-import { sendVerivificationEmail,sendWelcomeEmail } from '../mailtrap/emails.js';
+import { sendVerivificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../mailtrap/emails.js';
 
 export const register = async (req, res) => {
     const { name, email, password } = req.body;
@@ -28,7 +30,7 @@ export const register = async (req, res) => {
             message: 'User created successfully',
             user: {
                 ...user._doc,
-                password: null,
+                password: undefined,
             },
 
         });
@@ -73,8 +75,84 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-    res.send("login api");
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+        generateTokenAndSetCookie(res, user._id);
+        user.lastLogin = Date.now();
+        await user.save();
+
+        res.status(200).json({
+            message: "Login successful",
+            user: {
+                ...user._doc,
+                password: undefined,
+            },
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
 }
+
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    try {
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+        const resetToken = crypto.randomBytes(20).toString("hex");
+        const resetTokenExpiresAt = Date.now() + 3600 * 1000; // 1 hour
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpiresAt = resetTokenExpiresAt;
+        await user.save();
+        // send email
+        await sendPasswordResetEmail(email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+        return res.status(200).json({ message: "Password reset email sent successfully" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    const { token, password,passwordConfirm } = req.body;
+    try {
+        
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpiresAt: { $gt: Date.now() }
+        });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired token" });
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters' });
+        }
+        if (password !== passwordConfirm) {
+            return res.status(400).json({ message: 'Passwords do not match' });
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresAt = undefined;
+        user.save();
+        return res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+
 
 export const logout = async (req, res) => {
     res.send("logout api");

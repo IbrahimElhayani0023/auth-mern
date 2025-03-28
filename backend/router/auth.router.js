@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, logout, verifyEmail } from '../controllers/auth.controller.js';
+import { register, login, logout, verifyEmail, forgotPassword } from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/login", login);
 router.post("/register", register);
 router.post("/logout", logout);
-
+router.post("/forgot-password", forgotPassword);
 
 //verification prosses
 router.post("/verify-email", verifyEmail);
