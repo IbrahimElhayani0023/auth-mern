@@ -125,13 +125,15 @@ export const forgotPassword = async (req, res) => {
 }
 
 export const resetPassword = async (req, res) => {
-    const { token, password,passwordConfirm } = req.body;
+    const { token } = req.params;
     try {
-        
+        const { password, passwordConfirm } = req.body;
+
         const user = await User.findOne({
             resetPasswordToken: token,
             resetPasswordExpiresAt: { $gt: Date.now() }
         });
+
         if (!user) {
             return res.status(400).json({ message: "Invalid or expired token" });
         }
@@ -152,8 +154,27 @@ export const resetPassword = async (req, res) => {
     }
 }
 
+export const checkAuth = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user)  return res.status(401).json({ message: "Unauthorized" });
+        
+        res.status(200).json({
+            message: "User authenticated",
+            user: {
+                ...user._doc,
+                password: undefined,
+            },
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+        
+    }
+}
 
 
 export const logout = async (req, res) => {
-    res.send("logout api");
+    res.clearCookie("token");
+    res.status(200).json({ message: "Logout successful" });
 }
