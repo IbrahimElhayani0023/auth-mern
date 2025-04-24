@@ -1,5 +1,5 @@
 import { useState } from "react"
-
+import { Link } from "react-router-dom"
 import AuthBg from "../components/AuthBg"
 
 function Login() {
@@ -9,25 +9,7 @@ function Login() {
   const hundleSubmit = async (e) => {
     e.preventDefault()
     console.log(user)
-    // try {
-    //   const response = await fetch("http://localhost:5000/api/v1/auth/login", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify(user),
-    //   })
-    //   const data = await response.json()
-    //   if (response.ok) {
-    //     // 
-    //   } else {
-    //     setError(data.message)
-    //   }
 
-    // } catch (error) {
-    //   setError(error.response.data.message)
-    //   console.error(error)
-    // }
   }
   return (
     <AuthBg pageName="Login">
@@ -46,7 +28,7 @@ function Login() {
             required
           />
         </div>
-        <div className="mb-4">
+        <div className="mb-2">
           <label htmlFor="password" className="block text-sm font-medium text-gray-300">
             Password
           </label>
@@ -60,13 +42,22 @@ function Login() {
             required
           />
         </div>
+        <div className="mb-4 flex justify-between items-center">
+          <Link className="text-indigo-600 hover:underline" to={"/email-verification"}>forgot you password</Link>
+        </div>
         <button
           type="submit"
-          className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
         >
           Login
         </button>
       </form>
+      <div className="mt-4 text-sm text-gray-300">
+        you don't have an account?{" "}
+        <Link to="/register" className="text-indigo-600 hover:underline ms-0.5">
+          Register
+        </Link>
+      </div>
     </AuthBg>
 
   )

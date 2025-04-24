@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Link } from "react-router-dom"
 import AuthBg from "../components/AuthBg"
 
 function Register() {
@@ -68,11 +69,17 @@ function Register() {
         </div>
         <button
           type="submit"
-          className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
         >
           Register
         </button>
       </form>
+      <div className="mt-4 text-sm text-gray-300">
+       you allredy have an account?{" "}
+        <Link to="/login" className="text-indigo-600 hover:underline ms-0.5">
+          Login
+        </Link>
+      </div>
     </AuthBg>
 
   )
